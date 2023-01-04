@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>TeacherPage</title>
+
+</head>
+<style>
+
+#count
+{
+   margin-left:20px;
+   font-size:22px;
+   color:black;
+}
+
+
+ .inputstyle {
+  margin-bottom:2%;
+  margin-top:3%;
+  margin-left:3%;
+}
+
+
+.divstyle {
+  border: 1px solid black;
+  margin: 1rem;
+  align:center;
+}
+
+.div{
+max-width: 400px;
+border: 1px solid black;
+margin: auto;
+margin-bottom: 2%;
+}
+
+</style>
+
+</head>
+<body>
+<h2 align="center">Assignment 7</h2>
+<h3 align="center">Silpa Vijayan Geetha</h3>
+
+<div class="card" style="margin:auto;max-width:1050px">
+
+    <a href="{{ url_for('teacherform') }}">Enter name</a><br>
+    <div id="teachername"></div>
+    <div id="studentname"></div>
+    <div align="right">
+        <span id="count">CountDown Timer</span>
+    </div>
+    <form class="insertquestion" action="/insertquestion" method="GET" enctype="multipart/form-data"
+          style="margin:auto;max-width:300px">
+        Enter Question<input type="text" name="question">
+        <button type="submit">Save</button>
+    </form>
+
+
+    <form class="viewandscoreans" action="/viewandscoreans" method="GET" enctype="multipart/form-data"
+          style="margin:auto;max-width:300px">
+        <b>Answer:-</b>
+        <div id="answer" class="div"></div>
+        <input type="text" name="score" id="score" class="inputstyle">
+        <button type="submit">Submit Score</button>
+        <button class="inputstyle" onclick="nextanswer()">Next Answer</button>
+        <br>
+
+    </form>
+
+
+</div>
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script>
+$(document).ready(function() {
+var answer = document.getElementById("answer")
+var teachername = document.getElementById("teachername")
+var studentname = document.getElementById("studentname")
+    $.ajax({
+            url:"/fetchansweranddate",
+            type:"POST",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+                if(result.starttime){
+                    startTimeFn(result.starttime)
+                }
+                if(!result.ans){
+                answer.innerHTML="No more answers submitted!!!"
+                document.getElementById("answer").style="color:red;";
+                }
+                else
+                {
+                    answer.innerHTML = result.ans;
+                }
+                let user1array=result.user1.split(',')
+                if(user1array[1] == "S")
+                    studentname.innerHTML='Student Name:'+user1array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user1array[0]
+                let user2array=result.user2.split(',')
+                if(user2array[1] ==  "S")
+                    studentname.innerHTML='Student Name:'+user2array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user2array[0]
+              }
+            });
+});
+
+
+function nextanswer(){
+   var answer = document.getElementById("answer")
+    $.ajax({
+            url:"/fetchanswer",
+            type:"POST",
+            contentType: "application/json",
+            success: function(result) {
+            if(!result.ans){
+                answer.innerHTML="No more answers submitted!!!"
+                document.getElementById("answer").style="color:red;";
+            }
+            else
+            {
+                answer.innerHTML = result.ans;
+            }
+          }
+        });
+}
+function startTimeFn(start){
+    var duration=convertTimeandDiff(start)
+    display = document.querySelector('#count');
+    startTimer(duration,display)
+    document.getElementById("count").style="color:green;";
+
+}
+
+function convertTimeandDiff(start){
+    var starttime= new Date(start)
+    var endDate=new Date()
+     var date = new Date();
+    var yyyy = starttime.getFullYear();
+    var mm = starttime.getDate();
+    var dd = (starttime.getMonth() + 1);
+
+    if (dd < 10)
+        dd = "0" + dd;
+
+    if (mm < 10)
+        mm = "0" + mm;
+
+    var cur_day = yyyy + "-" + mm + "-" + dd;
+
+    var hours = starttime.getHours()
+    var minutes = starttime.getMinutes()
+    var seconds = starttime.getSeconds();
+
+    if (hours < 10)
+        hours = "0" + hours;
+
+    if (minutes < 10)
+        minutes = "0" + minutes;
+
+    if (seconds < 10)
+        seconds = "0" + seconds;
+
+    final=cur_day + " " + hours + ":" + minutes + ":" + seconds;
+    var startDate=new Date(final)
+    const hrs = parseInt(Math.abs(endDate - startDate) / (1000 * 60 * 60) % 24);
+    const min = parseInt(Math.abs(endDate.getTime() - startDate.getTime()) / (1000 * 60) % 60);
+    const sec = parseInt(Math.abs(endDate.getTime() - startDate.getTime()) / (1000) % 60);
+    const duration=60*5 - (hrs*3600+min*60+sec)
+    return duration
+}
+
+
+function startTimer(duration, display) {
+    var timer = duration, minutes, seconds;
+    setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+         if (--timer < 0) {
+            display.textContent = "Time's Up!!!";
+        }
+    }, 1000);
+}
+
+
+
+
+</script>
+
+
+</body>
+</html>

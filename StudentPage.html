@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StudentPage</title>
+<style>
+
+ .inputstyle {
+  margin-bottom:2%;
+  margin-top:3%;
+  margin-left:3%;
+}
+
+
+.divstyle {
+  border: 1px solid black;
+  margin: 1rem;
+  align:center;
+}
+
+.div{
+max-width: 400px;
+border: 1px solid black;
+margin: auto;
+margin-bottom: 2%;
+}
+</style>
+
+</head>
+<body>
+<h2 align="center">Assignment 7</h2>
+<h3 align="center">Silpa Vijayan Geetha</h3>
+
+
+<div class="card" style="margin:auto;max-width:750px">
+    <a href="{{ url_for('studentform') }}">Enter name</a><br>
+    <div id="teachername" class="div"></div>
+    <div id="studentname" class="div"></div>
+
+    <div align="right">
+        <span id="count">CountDownTimer!</span>
+        <button id="start" onclick="start()" value="Start Game"></button>
+    </div>
+    <div>
+        Question:-
+        <div id="qns"></div>
+        <input type="text" name="answer" id="answer" class="inputstyle">
+
+        <button onclick="saveanswer()">Submit Answer</button>
+        <br>
+        <div id="viewscore"></div>
+        <button class="inputstyle" id="next" onclick="nextquestion()">Next Question</button>
+        <button class="inputstyle" onclick="viewscore()">View Score</button>
+        <div style="margin:auto;max-width:300px" id="msg"></div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script>
+
+$(document).ready(function() {
+var teachername = document.getElementById("teachername")
+var studentname = document.getElementById("studentname")
+document.getElementById("start").innerHTML="Start Game"
+
+
+    $.ajax({
+            url:"/fetchnamedetails",
+            type:"POST",
+            contentType: "application/json",
+            dataType: 'json',
+            success: function(result) {
+
+                let user1array=result.user1.split(',')
+                if(user1array[1] == "S")
+                    studentname.innerHTML='Student Name:'+user1array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user1array[0]
+                let user2array=result.user2.split(',')
+                if(user2array[1] ==  "S")
+                    studentname.innerHTML='Student Name:'+user2array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user2array[0]
+              }
+            });
+});
+
+function start()
+{
+
+    var duration = 60 * 5,
+    display = document.querySelector('#count');
+    startTimer(duration, display);
+    updateStarttime();
+    document.getElementById("start").onclick = end_game();
+    document.getElementById("start").innerHTML="End Game"
+}
+
+
+function end_game()
+{
+
+}
+
+function startTimer(duration, display) {
+    var timer = duration, minutes, seconds;
+    setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+            display.textContent = "Time's Up!!!";
+        }
+    }, 1000);
+}
+
+
+
+
+function updateStarttime(){
+    var qns = document.getElementById("qns")
+    var teachername = document.getElementById("teachername")
+    var studentname = document.getElementById("studentname")
+    var st = "start"
+    const reslt_dict = {st}
+    const s = JSON.stringify(reslt_dict);
+    $.ajax({
+            url:"/startgame",
+            type:"POST",
+            contentType: "application/json",
+            data: JSON.stringify(s),
+            success: function(result) {
+                console.log(result)
+                if (!result.qns) {
+                  qns.innerHTML="No more questions uploaded!!"
+                  document.getElementById("qns").style="color:red;";
+               }
+               else{
+                qns.innerHTML = result.qns;
+                }
+                if(result.user1){
+                let user1array=result.user1.split(',')
+                if(user1array[1] == "S")
+                    studentname.innerHTML='Student Name:'+user1array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user1array[0]
+                let user2array=result.user2.split(',')
+                if(user2array[1] ==  "S")
+                    studentname.innerHTML='Student Name:'+user2array[0]
+                else
+                    teachername.innerHTML='Teacher Name:'+user2array[0]
+                    }
+              }
+            });
+}
+
+function nextquestion(){
+   var qns = document.getElementById("qns")
+    var st = ""
+    const reslt_dict = {st}
+    const s = JSON.stringify(reslt_dict);
+    $.ajax({
+            url:"/startgame",
+            type:"POST",
+            contentType: "application/json",
+            data: JSON.stringify(s),
+            success: function(result) {
+            if (!result.qns) {
+              qns.innerHTML="No more questions uploaded!!"
+              document.getElementById("qns").style="color:red;";
+           }
+           else{
+            qns.innerHTML = result.qns;
+            }
+          }
+        });
+}
+
+function saveanswer() {
+  var answer = document.getElementById("answer").value;
+  const reslt_dict = {answer}
+  const s = JSON.stringify(reslt_dict);
+
+        $.ajax({
+            url:"/saveanswer",
+            type:"POST",
+            contentType: "application/json",
+            data: JSON.stringify(s),
+            success: function(result) {
+                    document.getElementById('msg').innerHTML='Submitted Successfully!!'
+              }
+              });
+
+}
+
+function viewscore(){
+  var viewscore = document.getElementById("viewscore");
+
+     $.ajax({
+            url:"/viewscore",
+            type:"POST",
+            contentType: "application/json",
+            success: function(result) {
+                    viewscore.innerHTML=result
+                    document.getElementById("viewscore").style="color:green;"
+              }
+              });
+
+}
+
+
+
+</script>
+
+</body>
+</html>
